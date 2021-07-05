@@ -1,0 +1,88 @@
+---
+postgresql_version: 12
+postgresql_user_home: "/var/lib/postgresql"
+postgresql_listen_addresses:
+  - "localhost"
+
+postgresql_backup_enabled: true
+
+# GPG Import
+# Need setting
+postgresql_backup_gpg_private_key:
+postgresql_backup_gpg_public_key:
+postgresql_backup_gpg_trust_file:
+# Don't need setting
+postgresql_backup_system_user: "postgres"
+postgresql_backup_system_group: "postgres"
+postgresql_backup_import_gpg_keys: true
+postgres_backup_gpg_opts: "--pinentry-mode loopback"
+
+# TLS
+# How to create your root CA:
+#   openssl req -new -nodes -text -out root.csr \
+#     -keyout root.key -subj "/CN=root.yourdomain.com"
+#   chmod og-rwx root.key
+#   openssl x509 -req -in root.csr -text -days 3650 \
+#     -extfile /etc/ssl/openssl.cnf -extensions v3_ca \
+#     -signkey root.key -out root.crt
+postgresql_enable_ssl: true
+postgresql_ssl_domain: "" # The hostname/domain name to set as the common name in the TLS certificate
+postgresql_ssl_ca_key: ""
+postgresql_ssl_ca_cert: ""
+postgresql_ssl_directory: "{{ postgresql_home }}"
+postgresql_ssl_ca_key_filename: "postgresql-root.key"
+postgresql_ssl_ca_cert_filename: "postgresql-root.crt"
+postgresql_ssl_server_key_filename: "postgresql-server.key"
+postgresql_ssl_server_csr_filename: "postgresql-server.csr"
+postgresql_ssl_server_cert_filename: "postgresql-server.crt"
+postgresql_ssl_server_cert_expiry_days: 3650
+postgresql_ssl_server_cert_subject: "/CN={{ postgresql_ssl_domain }}"
+
+# Backup
+# Need setting
+postgresql_backup_database:
+postgresql_backup_gpg_key_id:
+postgresql_backup_gpg_pass:
+# When using S3, the user is the Access key ID and pass is the Secret
+postgresql_backup_target_user:
+postgresql_backup_target_pass:
+# Don't need setting
+# postgresql_backup_target_protocol can be 'file', 'ftp' and all
+# other protocols supported by https://github.com/onaio/ansible-backup
+postgresql_backup_target_protocol: "file"
+postgresql_backup_target_path: "/backups/postgresql"
+postgresql_backup_cron_filename: backup_postgresql
+postgresql_backup_opsgenie_api_key:
+postgresql_backup_opsgenie_host_id: "{{ ansible_host | default(inventory_hostname) }}"
+postgresql_backup_on_error_command: |
+  curl -X POST https://api.opsgenie.com/v2/alerts \
+      -H "Content-Type: application/json" \
+      -H "Authorization: GenieKey {{ postgresql_backup_opsgenie_api_key }}" \
+      -d \
+  '{
+      "message": "PostgreSQL backups in {{ postgresql_backup_opsgenie_host_id }} failing",
+      "alias": "backups-{{ postgresql_backup_opsgenie_host_id | hash('sha1') }}-postgres",
+      "description":"PostgreSQL backups in {{ postgresql_backup_opsgenie_host_id }} are currently not running.",
+      "priority":"P4"
+  }'
+postgresql_backup_profiles:
+  - name: "{{ postgresql_backup_database }}"
+    schedule: 0 1 * * *
+    source: "postgresql://{{ postgresql_backup_database }}"
+    target: "{{ postgresql_backup_target }}"
+    max_age: "1M" # Time frame for old backups to keep.
+    full_max_age: "1W" # forces a full backup if last full backup reaches a specified age
+    max_full_backups: 4 # Number of full backups to keep.
+    user: "{{ postgresql_backup_system_user }}"
+    gpg_key: "{{ postgresql_backup_gpg_key_id }}"
+    gpg_pw: "{{ postgresql_backup_gpg_pass }}"
+    gpg_opts: "{{ postgres_backup_gpg_opts }}"
+    gpg_private_key_src: "{{ postgresql_backup_gpg_private_key }}"
+    gpg_public_key_src: "{{ postgresql_backup_gpg_public_key }}"
+    post_actions:
+      - type: "command"
+        on_error:
+          command: "{{ postgresql_backup_on_error_command }}"
+
+# Monit
+postgresql_configure_monit: true # Whether to configure Monit

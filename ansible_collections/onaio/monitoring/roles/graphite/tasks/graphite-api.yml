@@ -1,0 +1,56 @@
+---
+- name: Install graphite-api apt prerequisites
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - libffi-dev
+    - libcairo2-dev
+    - build-essential
+    - python-dev
+    - memcached
+  notify:
+    - "restart {{ graphite_api_service_name }}"
+    - restart memcached
+
+- name: Install graphite-api from pip
+  become: yes
+  become_user: "{{ graphite_api_system_user }}"
+  pip:
+    name: "{{ item.name }}"
+    version: "{{ item.version }}"
+    virtualenv: "{{ graphite_api_venv_path }}"
+  with_items:
+    - { name: "graphite-api", version: "{{ graphite_api_version }}" }
+    - { name: "graphite-api[cache]", version: "{{ graphite_api_version }}" }
+    - { name: "uwsgi", version: "{{ graphite_api_uwsgi_version }}" }
+    - { name: "python-memcached", version: "{{ graphite_api_python_memcached_version }}" }
+  notify:
+    - "restart {{ graphite_api_service_name }}"
+    - restart memcached
+
+- name: Make sure the graphite-api directory exists
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ graphite_api_system_user }}"
+    group: "{{ graphite_api_system_group }}"
+    mode: 0750
+  with_items:
+    - "{{ graphite_api_home }}/{{ graphite_api_service_name }}"
+    - "/var/log/{{ graphite_api_service_name }}"
+
+- name: Configure graphite-api
+  template:
+    src: "graphite_api_home/graphite_api_service_name/{{ item }}.j2"
+    dest: "{{ graphite_api_home }}/{{ graphite_api_service_name }}/{{ item }}"
+    owner: "{{ graphite_api_system_user }}"
+    group: "{{ graphite_api_system_group }}"
+  with_items:
+    - "graphite-api.yaml"
+    - "uwsgi.ini"
+  notify:
+    - "restart {{ graphite_api_service_name }}"
+    - "restart nginx"
+
+- import_tasks: systemd.yml

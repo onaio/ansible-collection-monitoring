@@ -1,0 +1,36 @@
+server {
+
+{% for k,v in item.server.items() %}
+{% if k.find('location') == -1 and k != 'name' and k != 'ssl' %}
+{% if v is not string and v is iterable %}
+{% for lv in v %}
+  {{ k|replace('__', '') }} {{ lv }}{% if k.find('__') == -1 %};
+{% endif %}
+{% endfor %}
+{% else %}
+  {{ k|replace('__', '') }} {{ v }}{% if k.find('__') == -1 %};
+{% endif %}
+{% endif %}
+{% endif %}
+{% if k.find('location') == -1 and k == 'ssl' and v['enabled'] %}
+  include /etc/nginx/{{ v['conf'] }};
+{% endif %}
+{% endfor %}
+
+{% for k,v in item.server.items() if k.find('location') != -1 %}
+  location {{ v.name }} {
+{% for x,y in v.items() if x != 'name' %}
+{% if y is not string and y is iterable %}
+{% for ly in y %}
+    {{ x|replace('__', '') }} {{ ly }}{% if x.find('__') == -1 %};
+{% endif %}
+{% endfor %}
+{% else %}
+    {{ x|replace('__', '') }} {{ y }}{% if x.find('__') == -1 %};
+{% endif %}
+{% endif %}
+{% endfor %}
+  }
+{% endfor %}
+
+}

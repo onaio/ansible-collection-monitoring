@@ -1,0 +1,18 @@
+---
+- name: Make sure InfluxDB is running
+  systemd:
+    name: influxdb
+    state: started
+
+- name: Make sure the InfuxDB admin user exists
+  shell: "influx  -username {{ graphite_api_influxdb_old_admin_user }} -password {{ graphite_api_influxdb_old_admin_pass }} -execute \"create user {{ graphite_api_influxdb_admin_user }} with password '{{ graphite_api_influxdb_admin_pass }}' with all privileges\""
+  ignore_errors: true
+
+- name: Make sure the InfuxDB user exists
+  shell: "influx -username {{ graphite_api_influxdb_admin_user }} -password {{ graphite_api_influxdb_admin_pass }} -execute \"CREATE USER \\\"{{ graphite_api_influxdb_graphite_user }}\\\" WITH PASSWORD '{{ graphite_api_influxdb_graphite_pass }}'\""
+  ignore_errors: true
+
+- include_tasks: influxdb-database.yml
+  with_items: "{{ graphite_api_influxdb_dbs }}"
+  loop_control:
+    loop_var: current_database

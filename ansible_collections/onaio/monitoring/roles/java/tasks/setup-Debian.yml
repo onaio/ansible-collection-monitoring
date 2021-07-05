@@ -1,0 +1,35 @@
+---
+# See: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=863199 and
+# https://github.com/geerlingguy/ansible-role-java/issues/64
+- name: Ensure 'man' directory exists.
+  file:
+    path: /usr/share/man/man1
+    state: directory
+    recurse: true
+  when:
+    - ansible_distribution == 'Ubuntu'
+    - ansible_distribution_version == '18.04'
+
+- name: Add Java 11 Repository for ubuntu 16.04
+  become: yes
+  become_user: root
+  apt_repository:
+    repo: 'ppa:openjdk-r/ppa'
+    state: present
+  when:
+    - ansible_distribution == 'Ubuntu'
+    - ansible_distribution_version == '16.04'
+  register: openjdk11repo
+
+- name: Update and upgrade apt packages for ubuntu 16.04
+  become: true
+  become_user: root
+  apt:
+    upgrade: yes
+    update_cache: yes
+  when: openjdk11repo.changed
+
+- name: Ensure Java is installed.
+  apt:
+    name: "{{ java_packages }}"
+    state: present
