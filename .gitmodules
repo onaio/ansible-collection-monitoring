@@ -1,0 +1,15 @@
+[submodule "roles/certbot"]
+	path = roles/certbot
+	url = https://github.com/onaio/ansible-certbot.git
+[submodule "roles/nginx"]
+	path = roles/nginx
+	url = https://github.com/onaio/ansible-nginx.git
+[submodule "roles/postgresql"]
+	path = roles/postgresql
+	url = https://github.com/onaio/ansible-postgresql.git
+[submodule "roles/java"]
+	path = roles/java
+	url = https://github.com/onaio/ansible-java.git
+[submodule "roles/graphite"]
+	path = roles/graphite
+	url = https://github.com/onaio/ansible-graphite-api.git
