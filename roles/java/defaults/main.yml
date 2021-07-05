@@ -1,9 +1,0 @@
----
-# Set java_packages if you would like to use a different version than the
-# default for the OS (see defaults per OS in `vars` directory).
-# java_packages: []
-
-java_home: ""
-# Whether to set the installed Java binary as the default java. You will need
-# to set java_home too for this to be done
-java_set_default: true
