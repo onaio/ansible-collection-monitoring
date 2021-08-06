@@ -1,0 +1,23 @@
+---
+roles:
+  - name: cloudalchemy.grafana
+    version: 0.17.0
+
+  - name: onaio.monit
+    src: https://github.com/onaio/ansible-monit.git
+    scm: git
+    version: master
+
+  - name: onaio.influxdb
+    src: https://github.com/onaio/ansible-influxdb.git
+    scm: git
+    version: master
+
+  - name: Graylog2.graylog-ansible-role
+    version: 3.2.0
+
+  - src: geerlingguy.java
+    version: 1.9.5
+
+  - src: elastic.elasticsearch
+    version: 7.6.2

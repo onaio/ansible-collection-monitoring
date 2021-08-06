@@ -11,5 +11,10 @@
     - include_tasks: tasks/python3-ubuntu.yml
     - name: Setup Ansible
       setup:
+    - include_tasks: tasks/check-role.yml
+      vars:
+        monitoring_roles:
+          - postgresql
+      with_items: "{{ monitoring_roles }}"
   roles:
     - role: onaio.monitoring.postgresql

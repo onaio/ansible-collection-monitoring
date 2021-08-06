@@ -1,0 +1,12 @@
+---
+- name: Search inside the role's directory
+  find:
+    paths: "{{ playbook_dir }}/../roles/{{ item }}"
+    patterns: "*.yml"
+    recurse: true
+  register: _find_results
+  delegate_to: 127.0.0.1
+
+- fail:
+    msg: "The roles/{{ item }} directory in this collection seems to be empty. Try run `git submodule update --init --recursive` to fix this issue"
+  when: _find_results.matched == 0

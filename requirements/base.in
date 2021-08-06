@@ -1,0 +1,3 @@
+ansible==2.10.6
+ansible-lint==4.3.0
+pip-tools
