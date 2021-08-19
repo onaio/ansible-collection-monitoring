@@ -27,5 +27,6 @@
     - role: "Graylog2.graylog-ansible-role"
 
     - role: onaio.monitoring.certbot
+      when:  "{{ monitoring_use_certbot | default(true) }}"
 
     - role: onaio.monitoring.nginx
