@@ -64,6 +64,17 @@ monitoring_graylog_password_secret: <Make sure this is at least 20 characters lo
 monitoring_graylog_root_password:
 ```
 
+### SSL certificates
+
+This collection uses SSL certificates from Letsencrypt. You can override this by setting `monitoring_use_certbot` value to `false` and adding the following variables:
+
+```yaml
+monitoring_use_certbot: false # Setting this to false, will require we specify the SSL certificate/keys to use
+monitoring_ssl_cert_directory: "{{ inventory_dir }}/files/ssl" # the directory to search for the certificate and key
+monitoring_ssl_cert: "certificate.pem" # filename of the certificate file
+monitoring_ssl_key: "key.pem" # filename of the key file
+```
+
 You can include the playbooks defined in this collection in your playbook as illustrated below:
 
 ```yaml
