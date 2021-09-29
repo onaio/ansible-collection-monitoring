@@ -21,5 +21,7 @@
     - role: cloudalchemy.grafana
 
     - role: onaio.monitoring.certbot
+      when:  "{{ monitoring_use_certbot | default(true) }}"
 
     - role: onaio.monitoring.nginx
+

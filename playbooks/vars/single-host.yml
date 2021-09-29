@@ -144,6 +144,10 @@ postgresql_user_privileges:
 postgresql_backup_enabled: false
 
 # NGINX
+nginx_monitoring_ssl_cert: "{{ 'fullchain.pem' if monitoring_ssl_cert is not defined else monitoring_ssl_cert }}"
+nginx_monitoring_ssl_key: "{{ 'privkey.pem' if monitoring_ssl_key is not defined else monitoring_ssl_key }}"
+nginx_monitoring_ssl_src_path: "{{ certbot_cert_path if monitoring_ssl_cert_directory is not defined else monitoring_ssl_cert_directory }}"
+nginx_monitoring_ssl_remote_src: "{{ true if monitoring_ssl_cert_directory is not defined else false }}"
 nginx_install_method: package
 nginx_ssl_dir: "{{ nginx_dir }}/ssl/{{ site.server.server_name }}"
 nginx_grafana_https_site_name: "{{ grafana_domain }}-https"
@@ -185,12 +189,12 @@ nginx_sites:
         proxy_next_upstream: "error timeout invalid_header http_500 http_502 http_503 http_504"
       ssl:
         enabled: true
-        cert: "fullchain.pem"
-        key: "privkey.pem"
-        src_dir: "/etc/letsencrypt/live/{{ certbot_cert_name }}"
-        conf: "{{ grafana_domain }}-ssl.conf"
+        cert: "{{ nginx_monitoring_ssl_cert }}"
+        key: "{{ nginx_monitoring_ssl_key }}"
+        src_dir: "{{ nginx_monitoring_ssl_src_path }}"
         create_symlink: true
-        remote_src: false
+        remote_src: "{{ nginx_monitoring_ssl_remote_src }}"
+        conf: "{{ grafana_domain }}-ssl.conf"
         access_log_format: "{{ nginx_access_logs.0.name }}"
   - server:
       name: "{{ nginx_graylog_http_site_name }}"
@@ -220,12 +224,12 @@ nginx_sites:
         proxy_next_upstream: "error timeout invalid_header http_500 http_502 http_503 http_504"
       ssl:
         enabled: true
-        cert: "fullchain.pem"
-        key: "privkey.pem"
-        src_dir: "/etc/letsencrypt/live/{{ certbot_cert_name }}"
-        conf: "{{ graylog_domain }}-ssl.conf"
+        cert: "{{ nginx_monitoring_ssl_cert }}"
+        key: "{{ nginx_monitoring_ssl_key }}"
+        src_dir: "{{ nginx_monitoring_ssl_src_path }}"
         create_symlink: true
-        remote_src: false
+        remote_src: "{{ nginx_monitoring_ssl_remote_src }}"
+        conf: "{{ graylog_domain }}-ssl.conf"
         access_log_format: "{{ nginx_access_logs.0.name }}"
   - server:
       name: "{{ nginx_sentry_http_site_name }}"
@@ -254,12 +258,12 @@ nginx_sites:
         proxy_next_upstream: "error timeout invalid_header http_500 http_502 http_503 http_504"
       ssl:
         enabled: true
-        cert: "fullchain.pem"
-        key: "privkey.pem"
-        src_dir: "/etc/letsencrypt/live/{{ certbot_cert_name }}"
-        conf: "{{ sentry_domain }}-ssl.conf"
+        cert: "{{ nginx_monitoring_ssl_cert }}"
+        key: "{{ nginx_monitoring_ssl_key }}"
+        src_dir: "{{ nginx_monitoring_ssl_src_path }}"
         create_symlink: true
-        remote_src: false
+        remote_src: "{{ nginx_monitoring_ssl_remote_src }}"
+        conf: "{{ sentry_domain }}-ssl.conf"
         access_log_format: "{{ nginx_access_logs.0.name }}"
 nginx_enabled_sites:
   - "{{ nginx_grafana_https_site_name }}"
@@ -270,6 +274,7 @@ nginx_enabled_sites:
   - "{{ nginx_sentry_http_site_name }}"
 
 # Certbot
+certbot_cert_path: "/etc/letsencrypt/live/{{ certbot_cert_name }}"
 certbot_create_certs: true
 certbot_site_names:
   - "{{ grafana_domain }}"
